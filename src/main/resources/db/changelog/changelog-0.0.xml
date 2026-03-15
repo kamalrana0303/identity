@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+      http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="20251207-001-create-spring-session" author="kamalrana03">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="spring_session"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="spring_session">
+            <column name="PRIMARY_ID" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="SESSION_ID" type="VARCHAR(36)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_spring_session_session_id"/>
+            </column>
+            <column name="CREATION_TIME" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LAST_ACCESS_TIME" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="MAX_INACTIVE_INTERVAL" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EXPIRY_TIME" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PRINCIPAL_NAME" type="VARCHAR(100)"/>
+        </createTable>
+
+        <createIndex indexName="idx_spring_session_expiry_time" tableName="spring_session">
+            <column name="EXPIRY_TIME"/>
+        </createIndex>
+
+        <createIndex indexName="idx_spring_session_principal_name" tableName="spring_session">
+            <column name="PRINCIPAL_NAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20251207-002-create-spring-session-attributes" author="kamalrana03">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="spring_session_attributes"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="spring_session_attributes">
+            <column name="SESSION_PRIMARY_ID" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ATTRIBUTE_NAME" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ATTRIBUTE_BYTES" type="BYTEA">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="spring_session_attributes" columnNames="SESSION_PRIMARY_ID, ATTRIBUTE_NAME" constraintName="pk_spring_session_attributes"/>
+
+        <addForeignKeyConstraint baseTableName="spring_session_attributes"
+                                 baseColumnNames="SESSION_PRIMARY_ID"
+                                 constraintName="fk_session_attributes_to_session"
+                                 referencedTableName="spring_session"
+                                 referencedColumnNames="PRIMARY_ID"
+                                 onDelete="CASCADE"/>
+
+        <createIndex indexName="idx_spring_session_attributes_session_id" tableName="spring_session_attributes">
+            <column name="SESSION_PRIMARY_ID"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20251207-003-create-users" author="kamalrana03">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="users"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="users">
+            <column name="username" type="VARCHAR(100)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20251207-004-create-authorities" author="kamalrana03">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="authorities"/>
+            </not>
+        </preConditions>
+        <createTable tableName="authorities">
+            <column name="username" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="authority" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="authorities" columnNames="username, authority" constraintName="pk_authorities"/>
+        <addForeignKeyConstraint baseTableName="authorities"
+                                 baseColumnNames="username"
+                                 referencedTableName="users"
+                                 referencedColumnNames="username"
+                                 constraintName="fk_authorities_users"
+                                 onDelete="CASCADE"/>
+        <createIndex indexName="idx_authorities_username" tableName="authorities">
+            <column name="username"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
